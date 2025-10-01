@@ -45,9 +45,7 @@ requirements.txt          # Daftar dependency
 
 1. Clone repo:
    ```bash
-   git clone https://github.com/davonnlemuel/tugas-2-kapita-selekta-anailitika-data.git
-   cd tugas-2-kapita-selekta-anailitika-data
-   ```
+   git clone
 
 2. Buat virtual environment:
    ```bash
