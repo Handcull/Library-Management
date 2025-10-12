@@ -1,28 +1,23 @@
-from fastapi import Header, HTTPException, status, Depends
+from fastapi import Header, HTTPException, status
 from .data_store import users_db
-from .schemas import User
 
-def get_current_user(x_user_id: int = Header(..., description="ID unik pengguna yang melakukan request")) -> User:
+def get_current_user(x_user_id: int = Header(..., description="Masukkan ID user (misal: 101)")):
     """
-    Dependensi untuk mendapatkan data user dari header X-User-ID.
-    Ini adalah cara otentikasi sederhana tanpa JWT.
+    Autentikasi sederhana tanpa JWT.
+    Validasi user berdasarkan ID di header.
     """
-    user = next((u for u in users_db if u.id == x_user_id), None)
+    user = users_db.get(x_user_id)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User ID tidak valid atau tidak ditemukan."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User tidak ditemukan."
         )
     return user
 
-def require_admin_role(current_user: User = Depends(get_current_user)):
-    """
-    Dependensi yang memastikan bahwa request hanya bisa dilakukan oleh user dengan peran 'admin'.
-    Jika peran tidak sesuai, akan menghasilkan error 403 Forbidden.
-    """
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Akses ditolak. Endpoint ini hanya untuk admin."
-        )
-    return current_user
+def require_admin_role(x_user_id: int = Header(...)):
+    user = users_db.get(x_user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User tidak ditemukan.")
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Hanya admin yang dapat mengakses endpoint ini.")
+    return user
