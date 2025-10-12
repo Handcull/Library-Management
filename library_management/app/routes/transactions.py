@@ -1,144 +1,109 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from datetime import date, timedelta
 import uuid
-from typing import List
-
-from ..schemas import User, LoanRecord, ReturnConfirmation, ActiveLoanResponse
+from ..schemas import LoanRecord, ReturnConfirmation
 from ..data_store import books_db, loans_db
-from ..dependencies import get_current_user, require_admin_role
+from ..dependencies import get_current_user
 
-# === KONFIGURASI ATURAN PEMINJAMAN ===
-LOAN_DURATION_DAYS = 14
-MAX_LOAN_DAYS_TOTAL = 30
-FINE_PER_DAY = 1000  # dalam Rupiah
+router = APIRouter()
 
-router = APIRouter(
-    tags=["Loan Transactions"]
-)
-
+# ==========================================================
+#                 PINJAM BUKU (BORROW)
+# ==========================================================
 @router.post("/borrow/{book_id}", response_model=LoanRecord, status_code=status.HTTP_201_CREATED)
-def borrow_book(book_id: uuid.UUID, current_user: User = Depends(get_current_user)):
+def borrow_book(book_id: uuid.UUID, current_user=Depends(get_current_user)):
     """
-    Endpoint untuk mahasiswa meminjam buku.
+    Endpoint untuk meminjam buku oleh pengguna dengan role 'mahasiswa'.
+    - Jika stok buku habis → 400
+    - Jika bukan mahasiswa → 403
+    - Jika berhasil → 201 dan mengembalikan data LoanRecord
     """
-    if current_user.role == 'admin':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin tidak dapat meminjam buku.")
+    if current_user.role != "mahasiswa":
+        raise HTTPException(status_code=403, detail="Hanya mahasiswa yang dapat meminjam buku")
 
     book = books_db.get(book_id)
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Buku tidak ditemukan.")
-    
+        raise HTTPException(status_code=404, detail="Buku tidak ditemukan")
     if book.stock <= 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Stok buku habis.")
+        raise HTTPException(status_code=400, detail="Stok habis")
 
-    # Cek apakah user sudah meminjam buku yang sama dan belum dikembalikan
-    existing_loan = next((loan for loan in loans_db if loan.user_id == current_user.id and loan.book_id == book_id and loan.return_date is None), None)
-    if existing_loan:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Anda sudah meminjam buku ini.")
-
-    # Proses peminjaman
+    # Kurangi stok buku
     book.stock -= 1
+    books_db[book_id] = book
+
+    # Buat catatan peminjaman
+    loan_id = uuid.uuid4()
     today = date.today()
-    
-    new_loan = LoanRecord(
-        id=uuid.uuid4(),
+    record = LoanRecord(
+        id=loan_id,
         user_id=current_user.id,
         book_id=book_id,
         borrow_date=today,
-        due_date=today + timedelta(days=LOAN_DURATION_DAYS),
-        initial_borrow_date=today, # Set tanggal pinjam awal
+        due_date=today + timedelta(days=7),
+        initial_borrow_date=today
     )
-    loans_db.append(new_loan)
-    return new_loan
+    loans_db[loan_id] = record
+    return record
 
+
+# ==========================================================
+#                 KEMBALIKAN BUKU (RETURN)
+# ==========================================================
 @router.post("/return/{loan_id}", response_model=ReturnConfirmation)
-def return_book(loan_id: uuid.UUID, current_user: User = Depends(get_current_user)):
+def return_book(loan_id: uuid.UUID, current_user=Depends(get_current_user)):
     """
-    Endpoint untuk mahasiswa mengembalikan buku.
+    Endpoint untuk mengembalikan buku.
+    - Jika pinjaman tidak ditemukan → 404
+    - Jika buku sudah dikembalikan → 400
+    - Jika terlambat → denda 2000 per hari
+    - Jika berhasil → 200 OK + pesan konfirmasi
     """
-    loan = next((l for l in loans_db if l.id == loan_id), None)
-    
+    loan = loans_db.get(loan_id)
     if not loan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data peminjaman tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Peminjaman tidak ditemukan")
+    if loan.return_date:
+        raise HTTPException(status_code=400, detail="Buku sudah dikembalikan")
 
-    if loan.user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Anda tidak berhak mengembalikan pinjaman ini.")
-
-    if loan.return_date is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Buku ini sudah dikembalikan.")
-
-    # Proses pengembalian
     today = date.today()
-    fine_charged = 0
+    fine = 0
     if today > loan.due_date:
-        days_late = (today - loan.due_date).days
-        fine_charged = days_late * FINE_PER_DAY
-    
+        fine = (today - loan.due_date).days * 2000  # denda 2000/hari
+
     loan.return_date = today
-    loan.fine = fine_charged
-    
+    loans_db[loan_id] = loan
+
+    # Kembalikan stok buku
     book = books_db.get(loan.book_id)
     if book:
         book.stock += 1
-        
+        books_db[loan.book_id] = book
+
     return ReturnConfirmation(
-        message="Buku berhasil dikembalikan.",
-        loan_id=loan.id,
-        fine_charged=fine_charged
+        message="Buku berhasil dikembalikan",
+        loan_id=loan_id,
+        fine_charged=fine
     )
 
+
+# ==========================================================
+#                 PERPANJANG PEMINJAMAN (EXTEND)
+# ==========================================================
 @router.post("/extend/{loan_id}", response_model=LoanRecord)
-def extend_loan_period(loan_id: uuid.UUID, current_user: User = Depends(get_current_user)):
+def extend_loan(loan_id: uuid.UUID, current_user=Depends(get_current_user)):
     """
-    Endpoint untuk mahasiswa memperpanjang masa pinjam.
+    Endpoint untuk memperpanjang masa peminjaman buku.
+    - Hanya boleh diperpanjang 1 kali.
+    - Jika pinjaman tidak ditemukan → 404
+    - Jika sudah diperpanjang sebelumnya → 400
     """
-    loan = next((l for l in loans_db if l.id == loan_id and l.user_id == current_user.id), None)
-
+    loan = loans_db.get(loan_id)
     if not loan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data peminjaman tidak ditemukan.")
-    
-    if loan.return_date is not None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tidak dapat memperpanjang pinjaman yang sudah selesai.")
-
+        raise HTTPException(status_code=404, detail="Peminjaman tidak ditemukan")
     if loan.extended:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Masa pinjam hanya bisa diperpanjang satu kali.")
+        raise HTTPException(status_code=400, detail="Sudah diperpanjang sekali")
 
-    # Cek aturan 30 hari
-    new_due_date = loan.due_date + timedelta(days=LOAN_DURATION_DAYS)
-    total_loan_duration = (new_due_date - loan.initial_borrow_date).days
-    if total_loan_duration > MAX_LOAN_DAYS_TOTAL:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Perpanjangan ditolak. Total durasi pinjam tidak boleh melebihi {MAX_LOAN_DAYS_TOTAL} hari.")
-
-    loan.due_date = new_due_date
+    # Perpanjang jatuh tempo 7 hari
+    loan.due_date += timedelta(days=7)
     loan.extended = True
+    loans_db[loan_id] = loan
     return loan
-
-@router.get("/loans/my-loans", response_model=List[ActiveLoanResponse])
-def get_my_active_loans(current_user: User = Depends(get_current_user)):
-    """
-    Melihat daftar buku yang sedang dipinjam oleh user saat ini.
-    """
-    active_loans = [
-        loan for loan in loans_db 
-        if loan.user_id == current_user.id and loan.return_date is None
-    ]
-    
-    response = []
-    for loan in active_loans:
-        book = books_db.get(loan.book_id)
-        response.append(ActiveLoanResponse(
-            loan_id=loan.id,
-            book_id=loan.book_id,
-            book_title=book.title if book else "Buku Tidak Ditemukan",
-            borrow_date=loan.borrow_date,
-            due_date=loan.due_date,
-            extended=loan.extended
-        ))
-    return response
-
-@router.get("/loans/active-all", response_model=List[LoanRecord], dependencies=[Depends(require_admin_role)])
-def get_all_active_loans():
-    """
-    Melihat semua buku yang sedang dipinjam di seluruh perpustakaan. (Hanya Admin)
-    """
-    return [loan for loan in loans_db if loan.return_date is None]

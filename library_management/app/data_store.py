@@ -1,65 +1,38 @@
-from typing import List, Dict
+from .schemas import User, Book, LoanRecord
 import uuid
 from datetime import date, timedelta
-from .schemas import Book, User, LoanRecord
 
-# ==================================
-#         "DATABASE" PENGGUNA
-# ==================================
-# Di dunia nyata, ini akan ada di tabel database.
-# Untuk proyek ini, kita definisikan secara statis.
-users_db: List[User] = [
-    User(id=1, role="admin"),
-    User(id=101, role="mahasiswa"),
-    User(id=102, role="mahasiswa"),
-]
+# ====== DATABASE SEDERHANA (IN-MEMORY) ======
+users_db = {
+    1: User(id=1, name="Admin", role="admin"),
+    101: User(id=101, name="Steven Jerry", role="mahasiswa"),  # mahasiswa dengan id 101
+    102: User(id=102, name="Mahasiswa 2", role="mahasiswa")
+}
 
 
-# ==================================
-#         "DATABASE" BUKU
-# ==================================
-# Menggunakan Dictionary untuk pencarian cepat berdasarkan ID.
-# Format: { book_id: Book_Object }
-books_db: Dict[uuid.UUID, Book] = {}
 
+books_db = {}
+loans_db = {}
 
-# ==================================
-#      "DATABASE" PEMINJAMAN
-# ==================================
-# Menggunakan List karena kita seringkali akan mengiterasi semua pinjaman.
-loans_db: List[LoanRecord] = []
+# ====== KONSTANTA DAN UTILITAS ======
+FINE_PER_DAY = 2000  # Rupiah per hari keterlambatan
+LOAN_LIMIT_DAYS = 30
 
-
-# ==================================
-#       FUNGSI DATA SEEDER
-# ==================================
 def seed_initial_data():
     """
-    Fungsi untuk mengisi data awal agar aplikasi tidak kosong saat dijalankan.
-    Fungsi ini bisa dipanggil saat startup aplikasi.
+    Mengisi data awal saat startup.
     """
-    # Hanya seed jika database buku kosong
     if not books_db:
-        book1_id = uuid.uuid4()
-        book2_id = uuid.uuid4()
-        book3_id = uuid.uuid4()
-
-        books_db[book1_id] = Book(
-            id=book1_id,
-            title="Cloud Cuckoo Land",
-            author="Anthony Doerr",
-            stock=5
-        )
-        books_db[book2_id] = Book(
-            id=book2_id,
-            title="Project Hail Mary",
-            author="Andy Weir",
-            stock=3
-        )
-        books_db[book3_id] = Book(
-            id=book3_id,
-            title="Klara and the Sun",
-            author="Kazuo Ishiguro",
-            stock=0 # Contoh buku habis
-        )
+        book1 = Book(id=uuid.uuid4(), title="Pemrograman Python", author="Guido van Rossum", stock=5)
+        book2 = Book(id=uuid.uuid4(), title="Deep Learning", author="Ian Goodfellow", stock=2)
+        books_db[book1.id] = book1
+        books_db[book2.id] = book2
         print("Initial book data has been seeded.")
+
+def compute_due_date(borrow_date: date, days: int) -> date:
+    return borrow_date + timedelta(days=days)
+
+def compute_fine(return_date: date, due_date: date) -> int:
+    if return_date <= due_date:
+        return 0
+    return (return_date - due_date).days * FINE_PER_DAY

@@ -1,40 +1,45 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from library_management.app.routes import books, transactions
+
+# gunakan relative import biar pytest mengenali struktur package dengan benar
+from .routes import books, users, transactions
 from .data_store import seed_initial_data
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Kode ini dieksekusi saat aplikasi startup
-    print("Startup: Menginisialisasi data awal...")
+    """
+    Dijalankan sekali saat startup aplikasi untuk inisialisasi data awal.
+    """
     seed_initial_data()
     yield
-    # Kode ini dieksekusi saat aplikasi shutdown
-    print("Shutdown: Aplikasi dimatikan.")
 
+
+# ==========================================================
+#                     INISIALISASI APP
+# ==========================================================
 app = FastAPI(
-    lifespan=lifespan,
-    title="API Sistem Manajemen Perpustakaan",
-    description="Proyek ini adalah implementasi API untuk mengelola peminjaman buku.",
+    title="Library Management API",
+    description="UTS Kapita Selekta Landat - No DB, No JWT",
     version="1.0.0",
-    contact={
-        "name": "Backend Developer",
-        "email": "dev@example.com",
-    },
+    lifespan=lifespan
 )
 
-# === Me-mount Router ===
-# Router untuk endpoint publik (GET buku)
-app.include_router(books.public_router)
-# Router untuk manajemen buku oleh admin
-app.include_router(books.router)
-# Router untuk transaksi peminjaman dan pengembalian
-app.include_router(transactions.router)
+# ==========================================================
+#                     REGISTER ROUTERS
+# ==========================================================
+# Buku endpoint
+app.include_router(books.router, prefix="/books", tags=["Books"])
 
+# User endpoint
+app.include_router(users.router, prefix="/users", tags=["Users"])
 
-@app.get("/", tags=["Root"])
-def read_root():
-    """
-    Endpoint root untuk mengecek apakah API berjalan.
-    """
-    return {"message": "Selamat datang di API Perpustakaan Universitas!"}
+# Transaksi endpoint (langsung di root)
+app.include_router(transactions.router, tags=["Transactions"])
+
+# ==========================================================
+#                     ROOT ENDPOINT
+# ==========================================================
+@app.get("/")
+def root():
+    return {"message": "Library Management API is running"}
