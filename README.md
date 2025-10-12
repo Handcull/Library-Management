@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Library Management System API
 
 Ini adalah proyek API untuk Ujian Tengah Semester mata kuliah Kapita Selekta Analitika Data.
@@ -51,9 +50,3 @@ pytest
   - `X-User-ID: 1` untuk **Admin**.
   - `X-User-ID: 101` atau `102` untuk **Mahasiswa**.
 =======
-
-# Library-Management
-Ujian Tengah Semester Kapita Selekta Analitika Data
-halo 
-
->>>>>>> 52cebfb22231c8b42043f7d079737dff232ed32d
