@@ -78,12 +78,10 @@ cd Library-Management
 ```
 2️⃣ Install Dependencies
 ```bash
-Copy code
 pip install -r requirements.txt
 ```
 3️⃣ Jalankan Server
 ```bash
-Copy code
 uvicorn library_management.app.main:app --reload
 ```
 4️⃣ Akses API di browser:
@@ -166,7 +164,6 @@ X-User-ID: 101
 
 📥 Contoh Response
 ```json
-Copy code
 {
   "message": "Perpanjangan peminjaman berhasil diproses",
   "data": {
@@ -285,9 +282,10 @@ Semua respons API mengikuti struktur formal berikut:
   "message": "Penjelasan hasil operasi",
   "data": { ... }
 }
+```
 Contoh Error:
-json
-Copy code
+```json
+
 {
   "message": "Permintaan gagal diproses",
   "error": "Buku dengan ID tersebut tidak ditemukan dalam sistem."
