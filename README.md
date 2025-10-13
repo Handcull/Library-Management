@@ -104,7 +104,6 @@ Mahasiswa	| Pinjam, perpanjang, kembalikan, simulasi denda, lihat riwayat pribad
 
 🔄 Alur Kerja Sistem
 ```bash
-Copy code
 Mahasiswa → POST /borrow/{book_id} → Sistem cek stok → Simpan pinjaman → Stok -1
                      ↓
              POST /extend/{loan_id} → Cek batas 30 hari → Perpanjangan 1x
@@ -114,44 +113,54 @@ Mahasiswa → POST /borrow/{book_id} → Sistem cek stok → Simpan pinjaman →
              POST /return/{loan_id} → Cek keterlambatan → Hitung denda → Selesai
 ```
 📡 Daftar Endpoint dan Contoh Penggunaan
+
 📘 Buku (/books)
-Method	| Endpoint | Keterangan |	Role
-GET |	/books/ | Lihat semua buku | Semua
-GET | /books/{book_id} | Detail buku	| Semua
-POST | /books/ | Tambah buku baru | Admin
-PUT | /books/{book_id} | Edit data buku | Admin
-DELETE | /books/{book_id} | Hapus buku | Admin
+| Role  | Method | Endpoint           | Keterangan       |
+| ----- | ------ | ------------------ | ---------------- |
+| Semua | GET    | `/books/`          | Lihat semua buku |
+| Semua | GET    | `/books/{book_id}` | Detail buku      |
+| Admin | POST   | `/books/`          | Tambah buku baru |
+| Admin | PUT    | `/book `           |                  |
+
 
 📗 Peminjaman Buku (/borrow/{book_id})
-Contoh Request
-
-pgsql
-Copy code
+📤 Contoh Request
+Endpoint
+```bash
 POST /borrow/8d6bba56-9a77-41de-9c94-23987ac223ce
-Header: X-User-ID: 101
-Contoh Response
+```
 
-json
-Copy code
+Header
+```makefile
+X-User-ID: 101
+```
+
+📥 Contoh Response
+```json
 {
   "message": "Peminjaman buku berhasil dibuat",
   "data": {
-    "loan_id": "b84dc0d7-4b3a-47a0-bf59-593746b729d0",
+    "loan_id": "b84dcd07-4b3a-47a0-bf59-593746b729d0",
     "tanggal_pinjam": "2025-10-13",
     "tanggal_jatuh_tempo": "2025-10-20",
     "status": "Dipinjam"
   }
 }
+```
+
 🔁 Perpanjangan Peminjaman (/extend/{loan_id})
 Contoh Request
-
-pgsql
-Copy code
+```bash
 POST /extend/4839a694-3d15-4a11-bd2a-cfa1f8aa6ae3
-Header: X-User-ID: 101
-Contoh Response
+```
 
-json
+Header:
+```makefile
+X-User-ID: 101
+```
+
+📥 Contoh Response
+```json
 Copy code
 {
   "message": "Perpanjangan peminjaman berhasil diproses",
@@ -161,11 +170,11 @@ Copy code
     "status": "Dipinjam (diperpanjang)"
   }
 }
+```
+
 📤 Pengembalian Buku (/return/{loan_id})
 Contoh Response
-
-json
-Copy code
+```json
 {
   "message": "Pengembalian buku berhasil diproses",
   "data": {
@@ -174,17 +183,21 @@ Copy code
     "denda": "Rp 0"
   }
 }
+```
+
 💰 Simulasi Denda (/loans/simulate-fine)
 Contoh Request
-
-pgsql
-Copy code
+```bash
 GET /loans/simulate-fine?loan_id=4839a694-3d15-4a11-bd2a-cfa1f8aa6ae3&return_date=2025-10-30
-Header: X-User-ID: 101
-Contoh Response
+```
 
-json
-Copy code
+Header: 
+```makefile
+X-User-ID: 101
+```
+
+Contoh Response
+```json
 {
   "message": "Simulasi denda berhasil dihitung",
   "data": {
@@ -197,12 +210,13 @@ Copy code
     "catatan": "Terlambat 3 hari"
   }
 }
+```
+
 📜 Riwayat Peminjaman
 🔹 Pinjaman Aktif (/loans/active)
 Menampilkan pinjaman yang masih berjalan.
 
-json
-Copy code
+```json
 {
   "message": "Data pinjaman aktif berhasil diambil",
   "data": [
@@ -219,19 +233,27 @@ Copy code
     }
   ]
 }
+```
 🔹 Riwayat Semua Pengguna (Admin)
-pgsql
-Copy code
+```bash
 GET /loans/history
-Header: X-User-ID: 1
+```
+Header: 
+```makefile
+X-User-ID: 1
+```
 🔹 Riwayat Pribadi (Mahasiswa)
-vbnet
-Copy code
+```bash
 GET /loans/history/me
-Header: X-User-ID: 101
+```
+
+Header
+```makefile
+X-User-ID: 101
+```
+
 📦 Struktur Folder
-pgsql
-Copy code
+```
 Library-Management/
 ├── library_management/
 │   ├── app/
@@ -250,11 +272,10 @@ Library-Management/
 ├── requirements.txt
 ├── README.md
 └── Library-Management.postman_collection.json
+```
 🧩 Format Respons API
 Semua respons API mengikuti struktur formal berikut:
-
-json
-Copy code
+```
 {
   "message": "Penjelasan hasil operasi",
   "data": { ... }
@@ -266,21 +287,24 @@ Copy code
   "message": "Permintaan gagal diproses",
   "error": "Buku dengan ID tersebut tidak ditemukan dalam sistem."
 }
+```
 ⚠️ Penanganan Error
-Kode	Penyebab	Pesan
-400	Request tidak valid	"Data tidak lengkap atau format salah"
-403	Akses ditolak	"Hanya admin yang dapat melakukan aksi ini"
-404	Data tidak ditemukan	"Buku/peminjaman tidak ditemukan"
-500	Kesalahan server	"Terjadi kesalahan internal"
+| Kode | Penyebab             | Pesan                                       |
+| ---- | -------------------- | ------------------------------------------- |
+| 400  | Request tidak valid  | "Data tidak lengkap atau format salah"      |
+| 403  | Akses ditolak        | "Hanya admin yang dapat melakukan aksi ini" |
+| 404  | Data tidak ditemukan | "Buku/peminjaman tidak ditemukan"           |
+| 500  | Kesalahan server     | "Terjadi kesalahan internal"                |
+
 
 🧪 Unit Test
 Framework: pytest
 Menjalankan pengujian otomatis seluruh endpoint API.
 
 Jalankan test:
-bash
-Copy code
+```bash
 pytest -v
+```
 Setiap test akan melakukan:
 
 Menambah buku baru
@@ -295,38 +319,33 @@ Mengecek riwayat & error handling
 
 📬 Postman Collection
 Tersedia file:
-
-pgsql
-Copy code
+```
 Library-Management.postman_collection.json
+```
 Langkah:
 
-Import file ke Postman.
+1. Import file ke Postman.
 
-Tambahkan Header X-User-ID (1 untuk admin, 101 untuk mahasiswa).
+2. Tambahkan Header X-User-ID (1 untuk admin, 101 untuk mahasiswa).
 
-Jalankan urutan:
-
-GET /books/
-
-POST /borrow/{book_id}
-
-POST /extend/{loan_id}
-
-GET /loans/simulate-fine
-
-POST /return/{loan_id}
-
-GET /loans/history/me
+3. Jalankan urutan:
+```bash
+GET    /books/                 → Lihat daftar buku  
+POST   /borrow/{book_id}       → Pinjam buku  
+POST   /extend/{loan_id}       → Perpanjang peminjaman  
+GET    /loans/simulate-fine    → Simulasi denda  
+POST   /return/{loan_id}       → Kembalikan buku
+```
 
 👨‍💻 Tim Pengembang
-Nama	NPM
-Dylan Richard	6162001168
-Vincent	6162001074
-Nathanael	6162001133
-Byan Bagus	6162101047
-Steven Jerry	6162101087
-Davonn Lemuel	6162101105
+| Nama          | NPM        |
+| ------------- | ---------- |
+| Dylan Richard | 6162001168 |
+| Vincent       | 6162001074 |
+| Nathanael     | 6162001133 |
+| Byan Bagus    | 6162101044 |
+| Steven Jerry  | 6162101087 |
+| Davonn Lemuel | 6162101105 |
 
 🏫 Universitas Katolik Parahyangan Bandung
 Fakultas Matematika – Program Studi Kapita Selekta Analitika Data
