@@ -93,14 +93,18 @@ uvicorn library_management.app.main:app --reload
 🔐 Header Autentikasi
 Gunakan header berikut pada setiap request:
 
-Header | Nilai | Keterangan
-X-User-ID | 1	| Admin
-X-User-ID	| 101 |	Mahasiswa
+| Header    | Nilai | Keterangan |
+| --------- | ----- | ---------- |
+| X-User-ID | 1     | Admin      |
+| X-User-ID | 101   | Mahasiswa  |
+
 
 👥 Role dan Hak Akses
-Role | Hak Akses
-Admin	| Kelola buku, lihat semua riwayat
-Mahasiswa	| Pinjam, perpanjang, kembalikan, simulasi denda, lihat riwayat pribadi
+| Role          | Hak Akses                                                             |
+| ------------- | --------------------------------------------------------------------- |
+| **Admin**     | Kelola buku, lihat semua riwayat                                      |
+| **Mahasiswa** | Pinjam, perpanjang, kembalikan, simulasi denda, lihat riwayat pribadi |
+
 
 🔄 Alur Kerja Sistem
 ```bash
