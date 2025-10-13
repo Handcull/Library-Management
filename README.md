@@ -124,6 +124,7 @@ Mahasiswa → POST /borrow/{book_id} → Sistem cek stok → Simpan pinjaman →
 
 
 📗 Peminjaman Buku (/borrow/{book_id})
+
 📤 Contoh Request
 Endpoint
 ```bash
@@ -306,16 +307,11 @@ Jalankan test:
 pytest -v
 ```
 Setiap test akan melakukan:
-
-Menambah buku baru
-
-Meminjam dan memperpanjang buku
-
-Menyimulasikan denda
-
-Mengembalikan buku
-
-Mengecek riwayat & error handling
+- Menambah buku baru
+- Meminjam dan memperpanjang buku
+- Menyimulasikan denda
+- Mengembalikan buku
+- Mengecek riwayat & error handling
 
 📬 Postman Collection
 Tersedia file:
