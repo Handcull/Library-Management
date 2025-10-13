@@ -5,29 +5,24 @@ from datetime import date, timedelta
 # ====== DATABASE SEDERHANA (IN-MEMORY) ======
 users_db = {
     1: User(id=1, name="Admin", role="admin"),
-    101: User(id=101, name="Steven Jerry", role="mahasiswa"),  # mahasiswa dengan id 101
-    102: User(id=102, name="Mahasiswa 2", role="mahasiswa")
+    101: User(id=101, name="Steven Jerry", role="mahasiswa"),
+    102: User(id=102, name="Mahasiswa 2", role="mahasiswa"),
 }
 
-
-
-books_db = {}
-loans_db = {}
+books_db = {}      # key: uuid.UUID -> Book
+loans_db = {}      # key: uuid.UUID -> LoanRecord
 
 # ====== KONSTANTA DAN UTILITAS ======
-FINE_PER_DAY = 2000  # Rupiah per hari keterlambatan
-LOAN_LIMIT_DAYS = 30
+FINE_PER_DAY = 1000   # Rupiah/hari
+LOAN_LIMIT_DAYS = 30  # total maksimal dari tanggal pinjam awal
 
 def seed_initial_data():
-    """
-    Mengisi data awal saat startup.
-    """
+    """Isi data awal buku saat startup (sekali)."""
     if not books_db:
-        book1 = Book(id=uuid.uuid4(), title="Pemrograman Python", author="Guido van Rossum", stock=5)
-        book2 = Book(id=uuid.uuid4(), title="Deep Learning", author="Ian Goodfellow", stock=2)
-        books_db[book1.id] = book1
-        books_db[book2.id] = book2
-        print("Initial book data has been seeded.")
+        b1 = Book(id=uuid.uuid4(), title="Pemrograman Python", author="Guido van Rossum", stock=5)
+        b2 = Book(id=uuid.uuid4(), title="Deep Learning", author="Ian Goodfellow", stock=2)
+        books_db[b1.id] = b1
+        books_db[b2.id] = b2
 
 def compute_due_date(borrow_date: date, days: int) -> date:
     return borrow_date + timedelta(days=days)

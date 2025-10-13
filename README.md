@@ -1,164 +1,76 @@
-# 📚 Library Management API
+# 🚀 Library Management API (FastAPI)
 
-Sebuah project **UTS Kapita Selekta Analitika Data** — implementasi backend sederhana untuk sistem manajemen perpustakaan menggunakan **FastAPI**.  
-Project ini dibuat tanpa database (menggunakan struktur `list` / `dict` sebagai penyimpanan sementara) sehingga mudah untuk dipelajari dan diujikan.
-
----
-
-## 🔖 Ringkasan Fitur
-- Manajemen Buku (Admin): tambah, lihat, update, hapus buku  
-- Transaksi Peminjaman (Mahasiswa): meminjam, mengembalikan, memperpanjang masa pinjam  
-- Perhitungan otomatis: stok buku, tanggal jatuh tempo, denda keterlambatan  
-- Pembatasan: perpanjangan hanya 1x dan total durasi pinjam tidak boleh melebihi 30 hari  
-- Otentikasi sederhana via header `X-User-ID` (tanpa JWT)  
-- Unit tests memakai `pytest`
+API ini dikembangkan untuk memenuhi kebutuhan pengelolaan peminjaman buku di perpustakaan. Sistem ini mencakup fitur manajemen buku, peminjaman, pengembalian, perpanjangan masa pinjam, simulasi denda, serta pencatatan riwayat peminjaman.
 
 ---
 
-## 📁 Struktur Project
-Directory utama project (singkat):
+## 📘 Informasi Akademik
 
-    Library-Management/
-    ├── library_management/
-    │   ├── app/
-    │   │   ├── routes/
-    │   │   │   ├── books.py
-    │   │   │   └── transactions.py
-    │   │   ├── data_store.py
-    │   │   ├── dependencies.py
-    │   │   ├── main.py
-    │   │   └── schemas.py
-    │   └── tests/
-    │       └── test_api.py
-    ├── requirements.txt
-    ├── setup_project.sh
-    └── README.md
+Proyek ini disusun sebagai bagian dari penilaian **Ujian Tengah Semester (UTS)**  
+Mata Kuliah **Kapita Selekta Analitika Data**  
+Fakultas **Matematika**  
+**Universitas Katolik Parahyangan Bandung**  
+Tahun Ajaran **2024/2025**
 
 ---
 
-## ⚙️ Prasyarat
-- Python 3.11 / 3.12 / 3.13 direkomendasikan  
-- Git (untuk versioning)  
-- Virtual environment (recommended)
+## 📖 Deskripsi Proyek
+
+Library Management API adalah backend REST API yang dirancang menggunakan **FastAPI**. API ini membantu perpustakaan dalam:
+- Mengelola data buku
+- Melakukan transaksi peminjaman buku
+- Memproses pengembalian dengan perhitungan denda
+- Membatasi durasi peminjaman maksimal 30 hari
+- Menyediakan simulasi denda sebelum pengembalian
+- Menyajikan riwayat peminjaman per pengguna
 
 ---
 
-## ▶️ Cara Menjalankan (lokal)
-1. Clone repo:git clone https://github.com/Handcull/Library-Management.git 
-    cd Library-Management
+## 🎯 Tujuan Sistem
 
-
-2. Buat virtual environment dan aktifkan:
-- Linux / macOS:
-  ```
-  python -m venv venv
-  source venv/bin/activate
-  ```
-- Windows (PowerShell):
-  ```
-  python -m venv venv
-  venv\Scripts\Activate.ps1
-  ```
-- Windows (CMD):
-  ```
-  python -m venv venv
-  venv\Scripts\activate
-  ```
-
-3. Install dependency: pip install -r requirements.txt
-
-
-4. Jalankan server: uvicorn library_management.app.main:app --reload
-
-5. 
-5. Buka dokumentasi interaktif:
-- Swagger UI: `http://127.0.0.1:8000/docs`
-- ReDoc: `http://127.0.0.1:8000/redoc`
+Sistem ini bertujuan untuk:
+✅ Mendukung digitalisasi layanan perpustakaan  
+✅ Mempermudah proses peminjaman dan pengembalian buku  
+✅ Memonitor keterlambatan dan menghitung denda secara otomatis  
+✅ Menyediakan API yang rapi dan terdokumentasi untuk dikembangkan lebih lanjut  
 
 ---
 
-## 🔌 Otentikasi sederhana (header)
-Semua endpoint yang memerlukan identitas user mengharuskan header `X-User-ID`:
-- `X-User-ID: 1` → Admin  
-- `X-User-ID: 101` atau `102` → Mahasiswa
+## ✅ Fitur Utama API
 
-Contoh header pada curl:
- curl -H "X-User-ID: 101" http://127.0.0.1:8000/books/
-
----
-
-## 📚 Endpoint Utama (ringkasan)
-- `GET /`  
-- Root, menampilkan pesan selamat datang.
-
-- Books (Publik)
-- `GET /books/` — daftar semua buku (`?available_only=true` untuk stok > 0)
-- `GET /books/{book_id}` — detail buku
-
-- Books (Admin)
-- `POST /books/` — tambah buku (Admin)
- - body JSON: `{ "title": "...", "author": "...", "stock": 5 }`
-- `PUT /books/{book_id}` — update buku (Admin)
-- `DELETE /books/{book_id}` — hapus buku (Admin)
-
-- Transactions (Mahasiswa)
-- `POST /borrow/{book_id}` — pinjam buku
-- `POST /return/{loan_id}` — kembalikan buku
-- `POST /extend/{loan_id}` — perpanjang pinjam (maks. 1x, total ≤ 30 hari)
-- `GET /loans/my-loans` — lihat pinjaman aktif milik user
-
-- Transactions (Admin)
-- `GET /loans/active-all` — lihat semua pinjaman aktif (Admin)
+| Fitur | Deskripsi |
+|-------|-----------|
+| Manajemen Buku | Tambah, edit, lihat, dan hapus buku |
+| Peminjaman | Mahasiswa dapat meminjam buku jika tersedia |
+| Pengembalian | Menghitung denda otomatis (Rp 1.000/hari terlambat) |
+| Perpanjangan | Maksimal satu kali, durasi total ≤ 30 hari |
+| Riwayat | Riwayat pinjaman per pengguna dan per sistem |
+| Simulasi Denda | Simulasi sebelum pengembalian |
+| Validasi Role | Admin vs Mahasiswa (role-based access) |
+| Unit Test | Validasi otomatis endpoint |
+| Postman Ready | Koleksi Postman disediakan |
 
 ---
 
-## 🔎 Contoh Request / Response singkat
+## 🛠️ Teknologi
 
-**Pinjam buku (mahasiswa)**  
-Request:
- POST /borrow/<book_id>
- Header: X-User-ID: 101
+| Teknologi | Keterangan |
+|------------|------------|
+| Python | Bahasa pemrograman |
+| FastAPI | Framework backend |
+| Uvicorn | Server ASGI |
+| Pytest | Unit testing |
+| Postman | API testing |
+| In-memory Store | Simulasi database (tanpa DB sesuai soal UTS) |
 
-Response (201):
-```json
-{
-"id": "uuid-loan",
-"user_id": 101,
-"book_id": "uuid-book",
-"borrow_date": "2025-09-30",
-"due_date": "2025-10-14",
-"return_date": null,
-"extended": false,
-"initial_borrow_date": "2025-09-30",
-"fine": 0
-}
+---
 
-## Menjalankan Unit Test
-    pytest -v
+## 🚀 Cara Menjalankan Project
 
-    💡 Tips & Catatan
+Pastikan Python 3 sudah terinstall.
 
-Project ini sengaja tanpa database (menggunakan list/dict) agar mudah diuji dan cepat untuk UTS. Untuk produksi, sebaiknya pakai DB (Postgres/MySQL) dan autentikasi yang aman (JWT/OAuth2).
-
-Jika Git di Windows memberi warning tentang line endings (LF -> CRLF), Anda dapat set git config --global core.autocrlf input untuk menjaga konsistensi LF di repo.
-
-Pastikan .gitignore mencakup venv/ agar environment tidak ter-commit.
-
-✍️ Contributors
-
-Handcull (Jeri) — backend & struktur project
-
-Byan — reviewer
-
-Dylan — testing
-
-Nathanael — dokumentasi
-
-Davonn — integrasi
-
-📜 Lisensi
-
-Project ini bersifat untuk tugas. Jika ingin menggunakan kembali untuk tujuan lain, mohon cantumkan kredit penulis asli.
-
-
+### Clone Repository
+```bash
+git clone https://github.com/Handcull/Library-Management.git
+cd Library-Management
 
