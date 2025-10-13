@@ -325,9 +325,7 @@ Library-Management.postman_collection.json
 Langkah:
 
 1. Import file ke Postman.
-
 2. Tambahkan Header X-User-ID (1 untuk admin, 101 untuk mahasiswa).
-
 3. Jalankan urutan:
 ```bash
 GET    /books/                 → Lihat daftar buku  
@@ -347,6 +345,6 @@ POST   /return/{loan_id}       → Kembalikan buku
 | Steven Jerry  | 6162101087 |
 | Davonn Lemuel | 6162101105 |
 
-🏫 Universitas Katolik Parahyangan Bandung
+Universitas Katolik Parahyangan Bandung
 Fakultas Matematika – Program Studi Kapita Selekta Analitika Data
 Tahun Ajaran 2024/2025
