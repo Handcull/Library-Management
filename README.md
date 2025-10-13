@@ -87,22 +87,23 @@ Copy code
 uvicorn library_management.app.main:app --reload
 ```
 4️⃣ Akses API di browser:
+
 👉 http://127.0.0.1:8000/docs
 
 🔐 Header Autentikasi
 Gunakan header berikut pada setiap request:
 
-Header	Nilai	Keterangan
-X-User-ID	1	Admin
-X-User-ID	101	Mahasiswa
+Header | Nilai | Keterangan
+X-User-ID | 1	| Admin
+X-User-ID	| 101 |	Mahasiswa
 
 👥 Role dan Hak Akses
-Role	Hak Akses
-Admin	Kelola buku, lihat semua riwayat
-Mahasiswa	Pinjam, perpanjang, kembalikan, simulasi denda, lihat riwayat pribadi
+Role | Hak Akses
+Admin	| Kelola buku, lihat semua riwayat
+Mahasiswa	| Pinjam, perpanjang, kembalikan, simulasi denda, lihat riwayat pribadi
 
 🔄 Alur Kerja Sistem
-bash
+```bash
 Copy code
 Mahasiswa → POST /borrow/{book_id} → Sistem cek stok → Simpan pinjaman → Stok -1
                      ↓
@@ -111,14 +112,15 @@ Mahasiswa → POST /borrow/{book_id} → Sistem cek stok → Simpan pinjaman →
              GET /loans/simulate-fine → Hitung denda simulasi
                      ↓
              POST /return/{loan_id} → Cek keterlambatan → Hitung denda → Selesai
+```
 📡 Daftar Endpoint dan Contoh Penggunaan
 📘 Buku (/books)
-Method	Endpoint	Keterangan	Role
-GET	/books/	Lihat semua buku	Semua
-GET	/books/{book_id}	Detail buku	Semua
-POST	/books/	Tambah buku baru	Admin
-PUT	/books/{book_id}	Edit data buku	Admin
-DELETE	/books/{book_id}	Hapus buku	Admin
+Method	| Endpoint | Keterangan |	Role
+GET |	/books/ | Lihat semua buku | Semua
+GET | /books/{book_id} | Detail buku	| Semua
+POST | /books/ | Tambah buku baru | Admin
+PUT | /books/{book_id} | Edit data buku | Admin
+DELETE | /books/{book_id} | Hapus buku | Admin
 
 📗 Peminjaman Buku (/borrow/{book_id})
 Contoh Request
