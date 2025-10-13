@@ -77,13 +77,15 @@ git clone https://github.com/Handcull/Library-Management.git
 cd Library-Management
 ```
 2️⃣ Install Dependencies
-bash
+```bash
 Copy code
 pip install -r requirements.txt
+```
 3️⃣ Jalankan Server
-bash
+```bash
 Copy code
 uvicorn library_management.app.main:app --reload
+```
 4️⃣ Akses API di browser:
 👉 http://127.0.0.1:8000/docs
 
