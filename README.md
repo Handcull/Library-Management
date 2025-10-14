@@ -344,6 +344,9 @@ POST   /return/{loan_id}       → Kembalikan buku
 | Steven Jerry Gani        | 6162101087   |
 | Davonn Lemuel Halomoan   | 6162101115   |
 
-Universitas Katolik Parahyangan Bandung
-Fakultas Matematika – Program Studi Kapita Selekta Analitika Data
-Tahun Ajaran 2024/2025
+**Dosen Pengampu:** Levina Michella, S.Si., M.Si.  
+**Universitas:** Universitas Katolik Parahyangan, Bandung  
+**Fakultas:** Fakultas Sains  
+**Program Studi:** Matematika  
+**Mata Kuliah:** Kapita Selekta Analitika Data  
+**Tahun Ajaran:** 2024/2025
