@@ -334,15 +334,15 @@ GET    /loans/simulate-fine    → Simulasi denda
 POST   /return/{loan_id}       → Kembalikan buku
 ```
 
-👨‍💻 Tim Pengembang
-| Nama          | NPM        |
-| ------------- | ---------- |
-| Dylan Richard | 6162001168 |
-| Vincent       | 6162001074 |
-| Nathanael     | 6162001133 |
-| Byan Bagus    | 6162101044 |
-| Steven Jerry  | 6162101087 |
-| Davonn Lemuel | 6162101115 |
+## 👨‍💻 Tim Pengembang
+| 👤 Nama                  | 🆔 NPM        |
+| ------------------------ | ------------ |
+| Dylan Richard            | 6162001168   |
+| Vincent                  | 6162001074   |
+| Nathanael                | 6162001133   |
+| Byan Bagus Syahputra     | 6162101044   |
+| Steven Jerry Gani        | 6162101087   |
+| Davonn Lemuel Halomoan   | 6162101115   |
 
 Universitas Katolik Parahyangan Bandung
 Fakultas Matematika – Program Studi Kapita Selekta Analitika Data
