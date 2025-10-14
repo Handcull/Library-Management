@@ -342,7 +342,7 @@ POST   /return/{loan_id}       → Kembalikan buku
 | Nathanael     | 6162001133 |
 | Byan Bagus    | 6162101044 |
 | Steven Jerry  | 6162101087 |
-| Davonn Lemuel | 6162101105 |
+| Davonn Lemuel | 6162101115 |
 
 Universitas Katolik Parahyangan Bandung
 Fakultas Matematika – Program Studi Kapita Selekta Analitika Data
