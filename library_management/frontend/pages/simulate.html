@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulasi Denda - Library System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="../app.js"></script>
+</head>
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="../index.html">📚 Library System</a>
+    <span id="activeUser" class="text-white me-2"></span>
+    <button class="btn btn-warning btn-sm" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h2 class="mb-3">💰 Simulasi Denda</h2>
+  <p class="text-muted">Hitung denda keterlambatan berdasarkan tanggal pengembalian.</p>
+
+  <div class="card shadow-sm border-primary">
+    <div class="card-header bg-primary text-white">📘 Pilih Pinjaman</div>
+    <div class="card-body">
+
+      <!-- Dropdown Loan -->
+      <div class="mb-3">
+        <label class="form-label">Pilih Pinjaman</label>
+        <select id="loanSelect" class="form-select" onchange="loadLoanDetail()">
+          <option value="">-- Pilih Pinjaman --</option>
+        </select>
+      </div>
+
+      <!-- Detail Pinjaman -->
+      <div id="loanDetail" class="mb-3 p-3 bg-light border rounded" style="display:none;">
+        <strong>Detail Pinjaman:</strong>
+        <p id="loanInfo" class="mb-0 text-muted"></p>
+      </div>
+
+      <!-- Simulasi -->
+      <div class="mb-3">
+        <label class="form-label">Tanggal Pengembalian</label>
+        <input type="date" id="returnDate" class="form-control">
+      </div>
+
+      <button class="btn btn-success" onclick="simulateFine()">Hitung Denda</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let loans = [];
+
+  loadLoanList();
+
+  async function loadLoanList() {
+    try {
+      const response = await apiRequest("/loans/active"); // hanya pinjaman aktif
+      loans = response.data;
+      const loanSelect = document.getElementById("loanSelect");
+
+      loans.forEach(l => {
+        const option = document.createElement("option");
+        option.value = l.loan_id;
+        option.textContent = `${l.book} (${l.loan_id})`;
+        loanSelect.appendChild(option);
+      });
+    } catch (err) {
+      alert("Gagal memuat daftar pinjaman: " + err.message);
+    }
+  }
+
+  function loadLoanDetail() {
+    const loanId = document.getElementById("loanSelect").value;
+    const selected = loans.find(l => l.loan_id === loanId);
+
+    if (selected) {
+      document.getElementById("loanDetail").style.display = "block";
+      document.getElementById("loanInfo").textContent =
+        `Buku: ${selected.book} | Tempo: ${selected.tanggal_jatuh_tempo} | Status: ${selected.status}`;
+    } else {
+      document.getElementById("loanDetail").style.display = "none";
+    }
+  }
+
+  async function simulateFine() {
+    const loanId = document.getElementById("loanSelect").value;
+    const returnDate = document.getElementById("returnDate").value;
+
+    if (!loanId || !returnDate) {
+      alert("Pilih loan dan tanggal pengembalian terlebih dahulu!");
+      return;
+    }
+
+    try {
+      const res = await apiRequest(`/loans/simulate-fine?loan_id=${loanId}&return_date=${returnDate}`);
+      const d = res.data;
+
+      alert(
+        `📊 HASIL SIMULASI\n\n` +
+        `Loan ID     : ${d.loan_id}\n` +
+        `Buku        : ${d.book}\n` +
+        `Tempo       : ${d.tanggal_jatuh_tempo}\n` +
+        `Pengembalian: ${d.rencana_tanggal_kembali}\n` +
+        `Terlambat   : ${d.keterlambatan}\n` +
+        `💰 Denda     : ${d.denda}\n\n` +
+        `${d.catatan}`
+      );
+    } catch (err) {
+      alert("Gagal simulasi denda: " + err.message);
+    }
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
