@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kelola User - Library System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="../app.js"></script>
+</head>
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="../index.html">📚 Library System</a>
+    <span id="activeUser" class="text-white me-2"></span>
+    <button class="btn btn-warning btn-sm" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h2 class="mb-3">👤 Kelola User</h2>
+  <p class="text-muted">Tambah dan kelola akun pengguna sistem perpustakaan. (Admin Only)</p>
+
+  <!-- FORM TAMBAH USER -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-white fw-bold">Tambah User Baru</div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-5">
+          <input id="userName" class="form-control" placeholder="Nama user">
+        </div>
+        <div class="col-md-4">
+          <select id="userRole" class="form-select">
+            <option value="mahasiswa">Mahasiswa</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-success w-100" onclick="addUser()">Tambah User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABEL USER -->
+  <h4>Daftar User</h4>
+  <table class="table table-bordered table-striped shadow-sm">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Nama</th>
+        <th>Role</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody">
+      <tr><td colspan="4" class="text-center">Memuat data...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  if (!USER_ID) {
+    window.location.href = "../login.html"; 
+  } else if (USER_ROLE !== "admin") {
+    alert("Akses ditolak! Halaman ini khusus Admin.");
+    window.location.href = "../index.html";
+  }
+
+  loadUsers();
+
+  async function loadUsers() {
+    try {
+      const users = await apiRequest("/users");
+      const tbody = document.getElementById("userTableBody");
+      tbody.innerHTML = "";
+
+      users.forEach(user => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${user.id}</td>
+          <td>${user.name}</td>
+          <td><span class="badge ${user.role === "admin" ? "bg-danger" : "bg-primary"}">${user.role}</span></td>
+          <td>
+            ${user.id == 1
+              ? `<span class="text-muted">Super Admin</span>`
+              : user.role === "admin"
+                ? (USER_ID == 1
+                    ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Hapus</button>`
+                    : `<span class="text-muted">Tidak bisa hapus admin</span>`
+                  )
+                : `<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Hapus</button>`
+            }
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (err) {
+      alert("Gagal memuat daftar user: " + err.message);
+    }
+  }
+
+  async function addUser() {
+    const name = document.getElementById("userName").value;
+    const role = document.getElementById("userRole").value;
+
+    if (!name.trim()) {
+      alert("Nama user harus diisi!");
+      return;
+    }
+
+    try {
+      await apiRequest("/users", "POST", { name, role });
+      alert("User berhasil ditambahkan ✅");
+      loadUsers();
+    } catch (err) {
+      alert("Gagal menambah user: " + err.message);
+    }
+  }
+
+  async function deleteUser(id) {
+    if (id == USER_ID) {
+      alert("Anda tidak dapat menghapus akun Anda sendiri.");
+      return;
+    }
+
+    if (!confirm("Yakin ingin menghapus user ini?")) return;
+
+    try {
+      await apiRequest(`/users/${id}`, "DELETE");
+      alert("User berhasil dihapus ✅");
+      loadUsers();
+    } catch (err) {
+      const msg = err.message.toLowerCase();
+      if (msg.includes("pinjaman") || msg.includes("borrow") || msg.includes("aktif")) {
+        alert("❗ User masih memiliki pinjaman aktif, tidak bisa dihapus.");
+      } else {
+        alert("Gagal menghapus user: " + err.message);
+      }
+    }
+  }
+</script>
+
+</body>
+</html>
